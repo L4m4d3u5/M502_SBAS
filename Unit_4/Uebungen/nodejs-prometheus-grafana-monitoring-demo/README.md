@@ -195,10 +195,22 @@ PromQL ist die Abfragesprache von Prometheus. Teste folgende Queries im Promethe
 | `rate(login_attempts_total{result="failed"}[5m])` | Rate fehlgeschlagener Logins pro Sekunde |
 | `rate(login_attempts_total{result="success"}[5m])` | Rate erfolgreicher Logins pro Sekunde |
 | `rate(sql_errors_total[5m])` | Rate simulierter SQL-Fehler pro Sekunde |
+| `sum(sql_errors_total)` | Absolute Gesamtzahl aller simulierten SQL-Fehler (kein Rate, sondern der Zählerstand) |
 | `sum(rate(security_events_total[5m])) by (type)` | Security Events pro Sekunde, aufgeschlüsselt nach Typ |
 | `open_security_findings` | Aktueller Stand offener Security Findings nach Schweregrad |
 | `histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))` | P95 Antwortzeit über alle Requests |
 | `nodejs_process_resident_memory_bytes` | Aktueller Speicherverbrauch des Node.js-Prozesses |
+
+### Counter vs. Rate: Beispiel SQL-Fehler
+
+`sql_errors_total` ist ein **Counter** – ein Wert, der nur steigt und nie sinkt. Zwei Sichtweisen auf denselben Counter beantworten unterschiedliche Fragen:
+
+| Query | Antwortet auf die Frage |
+|---|---|
+| `sum(sql_errors_total)` | "Wie viele SQL-Fehler gab es insgesamt seit Start?" → einfache Anzahl, steigt sprunghaft bei jedem Fehler |
+| `rate(sql_errors_total[5m])` | "Wie schnell passieren gerade SQL-Fehler?" → Fehler pro Sekunde, gemittelt über 5 Minuten |
+
+Wer einfach nur "die Anzahl" sehen möchte (z. B. für ein Dashboard-Panel), sollte den Counter direkt abfragen (`sum(sql_errors_total)`) statt `rate()`. `rate()` ist dagegen sinnvoll, um Trends/Lastspitzen zu erkennen oder um Alerts auf Basis einer Änderungsgeschwindigkeit zu definieren.
 
 ## 10. Grafana öffnen
 
@@ -248,6 +260,22 @@ rate(login_attempts_total{result="failed"}[5m])
 5. Panel-Titel setzen: **Fehlgeschlagene Logins**
 6. Visualisierung wählen: **Time series** oder **Stat**
 7. Panel speichern.
+
+### Zusatzaufgabe: Counter vs. Rate
+
+Erstelle ein zweites Panel **"SQL-Fehler (Anzahl)"** mit der Query:
+
+```
+sum(sql_errors_total)
+```
+
+Vergleiche es mit einem Panel **"SQL-Fehler (Rate)"** mit:
+
+```
+rate(sql_errors_total[5m])
+```
+
+Erzeuge Testtraffic (Abschnitt 7, "SQL-Fehler simulieren") und beobachte den Unterschied: Das erste Panel zeigt die absolute, ansteigende Anzahl, das zweite die Änderungsrate pro Sekunde.
 
 ## 13. Interpretation der Werte
 
