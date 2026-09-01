@@ -23,6 +23,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Serve static frontend (public/index.html) at /
+app.use(express.static(path.join(__dirname, 'public')));
+
 // ── In-memory data ────────────────────────────────────────────────────────────
 let books = [
   { id: 1, title: 'Clean Code',        author: 'Robert C. Martin', price: 35.00, stock: 10 },
